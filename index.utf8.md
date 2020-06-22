@@ -14,7 +14,7 @@ github-repo: hadley/mastering-shiny
 description: "The official guide to the Shiny web application framework for R."
 ---
 
-`r if (knitr::is_latex_output()) '<!--'` 
+ 
 
 
 # Welcome {-}
@@ -33,15 +33,16 @@ This book is licensed to you under [Creative Commons Attribution-NonCommercial-N
 
 The code samples in this book are licensed under [Creative Commons CC0 1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/), i.e. public domain.
 
-`r if (knitr::is_latex_output()) '-->'`
 
 
 
-```{r}
 
+
+```r
 # myPaths <- .libPaths("C:/Program Files/R/R-4.0.1/library")
 # myPaths <- c(myPaths)
 # .libPaths(myPaths)  # add new path
 # .libPaths()
 
 # devtools::install.packages("davan690/thematic")
+```

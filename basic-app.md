@@ -1,0 +1,341 @@
+# Your first Shiny app {#basic-app}
+
+
+
+## Introduction
+
+In this chapter, we'll create a simple Shiny app. I'll start by showing you the minimum boilerplate needed for a Shiny app, and then you'll learn how to start and stop it. Next you'll learn the two key components of every Shiny app: the **UI** (short for user interface) which defines how your app _looks_, and the **server function** which defines how your app _works_. Shiny uses reactive programming to automatically update outputs when inputs change so we'll finish off the chapter by learning the third important component of Shiny apps: reactive expressions.
+
+If you haven't already installed Shiny, install it now with:
+
+
+```r
+install.packages("shiny")
+```
+
+Then load in your current R session:
+
+
+```r
+library(shiny)
+```
+
+## Create app directory and file {#create-app}
+
+There are several ways to create a Shiny app. The simplest is to create a new directory for your app, and put a single file called `app.R` in it. This `app.R` file will be used to tell Shiny both how your app should look, and how it should behave. 
+
+Try it out by creating a new directory, and adding an `app.R` file that looks like this:
+
+
+```r
+library(shiny)
+ui <- fluidPage(
+  "Hello, world!"
+)
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+
+:::sidebar
+**RStudio Tip**: You can easily create a new directory and an `app.R` file containing a basic shiny app in one step by clicking **File | New Project**, then selecting "New Directory" and "Shiny Web Application". Or, if you've already created the `app.R` file, you can quickly add the app boilerplate by typing "shinyapp" and pressing Shift+Tab.
+:::
+
+This is a complete, if trivial, Shiny app! Looking closely at the code above, our `app.R` does four things:
+
+1.  It calls `library(shiny)` to load the shiny package.
+
+2.  It defines the user interface, the HTML webpage that humans interact
+    with. In this case, it's a page containing the words "Hello, world!".
+
+3.  It specifies the behavior of our app by defining a `server` function. 
+    It's currently empty, so our app doesn't _do_ anything, but we'll be back 
+    to revisit this shortly.
+    
+4.  It executes `shinyApp(ui, server)` to construct and start a Shiny 
+    application from UI and server.
+
+## Running and stopping {#running}
+
+There are a few ways you can run this app:
+
+*   Click the **Run App** button in the document toolbar.
+
+    <img src="images/basic-app/run-app.png" width="74" style="display: block; margin: auto auto auto 0;" />
+
+*   Use a keyboard shortcut: `Cmd/Ctrl` + `Shift` + `Enter`.
+
+*   If you're not using RStudio, you can `source()` the whole document, 
+    or call `shiny::runApp()` with the path to the directory containing `app.R`.
+
+Pick one of these options, and check that you see the same app as in Figure \@ref(fig:hello-world). Congratulations! You've made your first Shiny app.
+
+<div class="figure" style="text-align: center">
+<img src="images/basic-app/hello-world.png" alt="The very basic shiny app you'll see when you run the code above" width="440" />
+<p class="caption">(\#fig:hello-world)The very basic shiny app you'll see when you run the code above</p>
+</div>
+
+Before you close the app, go back to RStudio and look at the R console. You'll notice that it says something like:
+
+
+```r
+#> Listening on http://127.0.0.1:3827
+```
+
+This tells you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is a randomly assigned port number. You can enter that URL into any compatible[^ie] web browser to open another copy of your app.
+
+[^ie]: Shiny strives to support all modern browsers, and you can see the set currently supported at https://www.rstudio.com/about/platform-support/. Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.  However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
+
+Also notice that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until the Shiny app stops.
+
+You can stop the app and return access to the console using any one of these options:
+
+* Click the stop sign icon on the R console toolbar.
+
+* Click on the console, then press `Esc` (or press `Ctrl` + `C` if you're not
+  using RStudio).
+
+* Close the Shiny app window.
+
+The basic workflow of Shiny app development is to write some code, start the app, experiment with the app, play the app, write some more code, ... You'll learn other patterns later in Chapter \@ref(action-workflow).
+
+## Adding UI controls {#adding-ui}
+
+Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. We're going to make a very simple app that shows you all the built-in data frames included in the datasets package.
+
+Replace your `ui` with this code:
+
+
+```r
+ui <- fluidPage(
+  selectInput("dataset", label = "Dataset", choices = ls("package:datasets")),
+  verbatimTextOutput("summary"),
+  tableOutput("table")
+)
+```
+
+This example uses four new functions:
+
+* `fluidPage()` is a **layout function** that sets up the basic visual 
+  structure of the page. You'll learn more about them in Section \@ref(layout).
+  
+* `selectInput()` is an **input control** that lets the user interact with 
+  the app by providing a value. In this case, it's a select box with the 
+  label "Dataset" and lets you choose one of the built-in datasets that come 
+  with R. You'll learn more about inputs in Section \@ref(inputs).
+  
+* `verbatimTextOutput()` and `tableOutput()` are **output controls** that 
+  tell Shiny *where* to put rendered output (we'll get into the *how* in a 
+  moment). `verbatimTextOutput()` displays code  and `tableOutput` displays 
+  tables. You'll learn more about outputs in Section \@ref(outputs).
+
+Layout functions, inputs, and outputs have different uses, but they are fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a Shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. You'll learn more of the details in Chapter \@ref(advanced-ui).
+
+Go ahead and run the app again. You'll now see Figure \@ref(fig:basic-ui), a page containing a select box. We only see the input, not the two outputs, because we haven't yet told Shiny how the input and outputs are related.
+
+<div class="figure" style="text-align: center">
+<img src="screenshots/basic-app/ui.png" alt="The datasets app with UI" width="600" />
+<p class="caption">(\#fig:basic-ui)The datasets app with UI</p>
+</div>
+
+## Adding behavior {#server-function}
+
+Next, we'll bring the outputs to life by defining them in the server function.
+
+Shiny uses reactive programming to make apps interactive. You'll learn more about reactive programming in Chapter \@ref(basic-reactivity), but for now, just be aware that it involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe versus demanding that they go make you a sandwich.
+
+In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs—we're providing the "recipes" for those outputs. Replace your empty `server` function with this:
+
+
+```r
+server <- function(input, output, session) {
+  output$summary <- renderPrint({
+    dataset <- get(input$dataset, "package:datasets")
+    summary(dataset)
+  })
+  
+  output$table <- renderTable({
+    dataset <- get(input$dataset, "package:datasets")
+    dataset
+  })
+}
+```
+
+Almost every output you'll write in Shiny will follow this same pattern:
+
+
+```r
+output$ID <- renderTYPE({
+  # Expression that generates whatever kind of output
+  # renderTYPE expects
+})
+```
+
+The left-hand side of the assignment operator (`<-`), `output$ID`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment uses a specific __render function__ to wrap some code that you provide; in the example above, we use `renderPrint()` and `renderTable()` to wrap our app-specific logic. 
+
+Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display a statistical summary of the data with fixed-width (verbatim) text, and `renderTable()` to display the actual data frame in a table.
+
+Run the app again and play around, watching what happens to the output when you change an input. Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
+
+<div class="figure" style="text-align: center">
+<img src="screenshots/basic-app/server.png" alt="Now that we've provided a server function that connects outputs and inputs, we have a fully functional app" width="701" />
+<p class="caption">(\#fig:basic-server)Now that we've provided a server function that connects outputs and inputs, we have a fully functional app</p>
+</div>
+
+Notice that I haven't written any code that checks for changes to `input$dataset` and explicitly updates the two outputs. That's because outputs are __reactive__: they automatically recalculate when their inputs change. Because both of the rendering code blocks I wrote used `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. 
+
+## Reducing duplication with reactive expressions {#reactive-expr}
+
+Even in this simple example, we have some code that's duplicated: the following line is present in both outputs.
+
+
+```r
+dataset <- get(input$dataset, "package:datasets")
+```
+
+In every kind of programming, it's poor practice to have duplicated code; it can be computationally wasteful, and more importantly, it increases the difficulty of maintaining or debugging the code. It's not that important here, but I wanted to illustrate the basic idea in a very simple context.
+
+In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a variable, or capture the computation with a function. Unfortunately neither of these approaches work here, for reasons you'll learn about in Section \@ref(motivation), and we need a new mechanism: **reactive expressions**. 
+
+You create a reactive expression by wrapping a block of code in `reactive({...})` and assigning it to a variable, and you use a reactive expression by calling it like a function. But while it looks like you're calling a function, a reactive expression has an important difference: it only runs the first time it is called and then it caches its result until it needs to be updated. 
+
+We can output our `server()` to use reactive expressions, as shown below. The app behaves identically, but works a little more efficiently because it only needs to retrieve the dataset once, not twice.
+
+
+```r
+server <- function(input, output, session) {
+  dataset <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+
+  output$summary <- renderPrint({
+    summary(dataset())
+  })
+  
+  output$table <- renderTable({
+    dataset()
+  })
+}
+```
+
+We'll come back to reactive programming multiple times, but even armed with a cursory knowledge of inputs, outputs, and reactive expressions, it's possible to build quite useful Shiny apps!
+
+## Cheat sheet
+
+Before you continue on to read more about user interfaces and reactive programming, now is a great time to grab a copy of the Shiny cheatsheet from <https://www.rstudio.com/resources/cheatsheets/>. This is a great resource to help jog your memory of the main components of a Shiny app.
+
+<img src="images/basic-app/cheatsheet.png" width="352" style="display: block; margin: auto;" />
+
+## Exercises
+
+1.  Create an app that greets the user by name. You don't know all the 
+    functions you need to do this yet, so I've included some lines of code
+    below. Figure out which lines you'll use and then copy and paste them into
+    the right place in a Shiny app.
+
+    
+    ```r
+    textInput("name", "What's your name?")
+    renderText({
+      paste0("Hello ", input$name)
+    })
+    numericInput("age", "How old are you?")
+    textOutput("greeting")
+    tableOutput("mortgage")
+    renderPlot("histogram", {
+      hist(rnorm(1000))
+    }, res = 96)
+    ```
+
+1.  Suppose your friend wants to design an app that allows the user to set a 
+    number (`x`) between 1 and 50, and displays the result of multiplying this 
+    number by 5. This is their first attempt:
+
+    
+    ```r
+    ui <- fluidPage(
+      sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
+      "then x times 5 is",
+      textOutput("product")
+    )
+    
+    server <- function(input, output, session) {
+      output$product <- renderText({ 
+        x * 5
+      })
+    }
+    ```
+    
+    But unfortunately it has an error:
+
+    <img src="screenshots/basic-app/ex-x-times-5.png" width="600" style="display: block; margin: auto;" />
+   
+    Can you help them find and correct the error?
+
+1.  Extend the app from the previous exercise to allow the user to set the 
+    value of the multiplier, `y`, so that the app yields the value of `x * y`. 
+    The final result should look like this:.
+
+    <img src="screenshots/basic-app/ex-x-times-y.png" width="600" style="display: block; margin: auto;" />
+
+1.  Replace the UI and server components of your app from the previous exercise 
+    with the UI and server components below, run the app, and describe the app's 
+    functionality. Then reduce the duplication in the app by using a reactive
+    expression.
+
+    
+    ```r
+    ui <- fluidPage(
+      sliderInput("x", "If x is", min = 1, max = 50, value = 30),
+      sliderInput("y", "and y is", min = 1, max = 50, value = 5),
+      "then, (x * y) is", textOutput("product"),
+      "and, (x * y) + 5 is", textOutput("product_plus5"),
+      "and (x * y) + 10 is", textOutput("product_plus10")
+    )
+    
+    server <- function(input, output, session) {
+      output$product <- renderText({ 
+        product <- input$x * input$y
+        product
+      })
+      output$product_plus5 <- renderText({ 
+        product <- input$x * input$y
+        product + 5
+      })
+      output$product_plus10 <- renderText({ 
+        product <- input$x * input$y
+        product + 10
+      })
+    }
+    ```
+
+1.  The following app is very similar to one you've seen earlier in the chapter: 
+    you select a dataset from a package (this time we're using the **ggplot2** 
+    package) and the app prints out a summary and plot of the data. It also 
+    follows good practice and makes use of reactive expressions to avoid 
+    redundancy of code. However there are three bugs in the code provided 
+    below. Can you find and fix them?
+
+    
+    ```r
+    library(ggplot2)
+    datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
+    
+    ui <- fluidPage(
+      selectInput("dataset", "Dataset", choices = datasets),
+      verbatimTextOutput("summary"),
+      tableOutput("plot")
+    )
+    
+    server <- function(input, output, session) {
+      dataset <- reactive({
+        get(input$dataset, "package:ggplot2")
+      })
+      output$summmry <- renderPrint({
+        summary(dataset())
+      })
+      output$plot <- renderPlot({
+        plot(dataset)
+      }, res = 96)
+    }
+    ```
